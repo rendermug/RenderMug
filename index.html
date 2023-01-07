@@ -1,0 +1,114 @@
+<html>
+  <head>
+    <title>My Site</title>
+  </head>
+  <body>
+    <h1>Welcome to My Site</h1>
+    <form id="myForm">
+      <label for="textbox1">Textbox 1:</label><br>
+      <input type="text" id="textbox1" name="textbox1"><br>
+      <label for="textbox2">Textbox 2:</label><br>
+      <input type="text" id="textbox2" name="textbox2"><br>
+      <label for="image">Select an image:</label><br>
+      <input type="file" id="image" name="image" onchange="updateImage()"><br>
+      <button type="button" id="submitButton">Submit</button>
+    </form> 
+    <img src="H:\My Drive\Kit\Detective\MAT\PH_1.jpg" alt="My Image" id="displayedImage">
+    <div id="message"></div>
+    <script src="https://apis.google.com/js/api.js"></script>
+    <script>
+      // Replace YOUR_API_KEY with your actual API key
+      const API_KEY = 'AIzaSyB0y9_osoII-gTmG4i7aKVDgd46DmsjM4o';
+
+      // Replace SPREADSHEET_ID with the actual ID of your Google Sheet
+      const SPREADSHEET_ID = '18z8kXXO310kSnMYZYwag_q-HIc-Jn0JRyONQ1j6AhZI';
+
+      // Replace SHEET_NAME with the actual name of the sheet you want to update
+      const SHEET_NAME = 'Tgova';
+
+      // Your client ID and secret, obtained from the Google Cloud Console
+      const CLIENT_ID = '552436722102-u51fcn5p34mo7urrvurakgf60r6ba5ir.apps.googleusercontent.com';
+      const CLIENT_SECRET = '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';
+
+      // Scopes to request
+      const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
+
+    // Function to handle the 'click' event of the submit button
+    function handleSubmitClick() {
+      gapi.client.sheets.spreadsheets.values
+        .append({
+          spreadsheetId: SPREADSHEET_ID,
+          range: SHEET_NAME,
+          valueInputOption: 'USER_ENTERED',
+          insertDataOption: 'INSERT_ROWS',
+          resource: {
+            values: [[
+              document.getElementById('textbox1').value,
+              document.getElementById('textbox2').value,
+              document.getElementById('image').value
+            ]]
+          }
+        })
+        .then(() => {
+          document.getElementById('message').innerHTML = 'Data submitted successfully';
+        })
+        .catch(error => {
+          console.log(error);
+          document.getElementById('message').innerHTML = 'Error submitting data';
+        });
+    }
+
+    // Function to update the image display when a file is selected
+    function updateImage() {
+      const file = document.getElementById('image').files[0];
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const img = document.getElementById('displayedImage');
+        img.src = e.target.result;
+      }
+      reader.readAsDataURL(file);
+    }
+
+    // Initialize the API client and authorize the user
+    function handleClientLoad() {
+      gapi.client.init({
+        apiKey: API_KEY,
+        clientId: CLIENT_ID,
+        clientSecret: CLIENT_SECRET,
+        scope: SCOPES.join(' ')
+      }).then(() => {
+        gapi.auth2.getAuthInstance().isSignedIn.listen(updateSignInStatus);
+        updateSignInStatus(gapi.auth2.getAuthInstance().isSignedIn.get());
+      });
+    }
+
+    // Function to handle the sign-in state
+    function updateSignInStatus(isSignedIn) {
+      if (isSignedIn) {
+        document.getElementById('submitButton').style.display = 'block';
+      } else {
+        document.getElementById('submitButton').style.display = 'none';
+	}
+// Function to handle the 'click' event of the sign-in button
+    function handleAuthClick(event) {
+      gapi.auth2.getAuthInstance().signIn();
+    }
+
+    // Function to handle the 'click' event of the sign-out button
+    function handleSignoutClick(event) {
+      gapi.auth2.getAuthInstance().signOut();
+    }
+
+    // Add event listeners
+    document.getElementById('submitButton').addEventListener('click', handleSubmitClick);
+    document.getElementById('signinButton').addEventListener('click', handleAuthClick);
+    document.getElementById('signoutButton').addEventListener('click', handleSignoutClick);
+
+    // Load the API client and authorize the user
+    handleClientLoad();
+  </script>
+  <style>
+    /* Add your CSS styles here */
+  </style>
+  </body>
+</html>
